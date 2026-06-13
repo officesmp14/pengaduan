@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Pengaduan PPDB - SMPN 14 Tarakan</title>
+    <title>Form Pengaduan SPMB - SMPN 14 Tarakan</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
         .container { max-width: 600px; background: #fff; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -22,7 +22,7 @@
 <body>
 
 <div class="container">
-    <h2>Form Pengaduan PPDB</h2>
+    <h2>Form Pengaduan SPMB</h2>
     <h4>SMP Negeri 14 Tarakan</h4>
     
     <form id="formPengaduan">
@@ -137,7 +137,7 @@
                                 kirimNotifikasiWhatsApp(data);
                             } else {
                                 // JIKA PENGATURAN DI SET "TIDAK"
-                                alert("Pengaduan Anda sukses terkirim dan disimpan di database panitia PPDB SMPN 14 Tarakan. Terima kasih!");
+                                alert("Pengaduan Anda sukses terkirim dan disimpan di database panitia SPMB SMPN 14 Tarakan. Terima kasih!");
                             }
                             
                             // Reset form formulir setelah sukses
@@ -165,13 +165,13 @@
             noHPClean = noHPClean.substr(1);
         }
 
-        var teksRaw = "*PENGADUAN BARU PPDB SMPN 14 TARAKAN*\n" +
+        var teksRaw = "*PENGADUAN BARU SPMB SMPN 14 TARAKAN*\n" +
                       "----------------------------------\n" +
                       "*Nama Pelapor:* " + data.nama_pelapor + "\n" +
                       "*No. HP:* " + noHPClean + "\n" +
                       "*Judul Masalah:* " + data.judul_lapor + "\n" +
                       "*Isi Pengaduan:* " + data.isi_lapor + "\n\n" +
-                      "_Mohon segera diperiksa pada Google Sheets Panitia._";
+                      "_Mohon segera dibantu._";
 
         var teksPesan = encodeURIComponent(teksRaw);
         var urlWhatsAppAdmin1 = "https://wa.me/" + ADMIN_1 + "?text=" + teksPesan;
