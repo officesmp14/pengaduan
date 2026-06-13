@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pengaduan PPDB - SMPN 14 Tarakan</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: #fff; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 5px; }
+        h4 { text-align: center; color: #666; margin-top: 0; margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
+        input[type="text"], input[type="tel"], textarea, input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 120px; resize: vertical; }
+        .note { font-size: 12px; color: #888; font-style: italic; }
+        button { width: 100%; padding: 12px; background-color: #0056b3; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #004085; }
+        #loading { display: none; text-align: center; font-weight: bold; color: #0056b3; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Form Pengaduan PPDB</h2>
+    <h4>SMP Negeri 14 Tarakan</h4>
+    
+    <form id="formPengaduan">
+        <div class="form-group">
+            <label for="nama_pelapor">Nama Pelapor *</label>
+            <input type="text" id="nama_pelapor" name="nama_pelapor" required placeholder="Masukkan nama lengkap Anda">
+        </div>
+
+        <div class="form-group">
+            <label for="noHP_pelapor">No. HP / WhatsApp *</label>
+            <input type="tel" id="noHP_pelapor" name="noHP_pelapor" required placeholder="Contoh: 08123456789">
+        </div>
+
+        <div class="form-group">
+            <label for="judul_lapor">Judul Pengaduan *</label>
+            <input type="text" id="judul_lapor" name="judul_lapor" required placeholder="Ringkasan masalah">
+        </div>
+
+        <div class="form-group">
+            <label for="isi_lapor">Isi Pengaduan *</label>
+            <textarea id="isi_lapor" name="isi_lapor" required placeholder="Tuliskan detail pengaduan Anda secara jelas..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="file_gambar">Lampiran Gambar <span class="note">(Opsional)</span></label>
+            <input type="file" id="file_gambar" accept="image/*">
+            <p class="note">Format: JPG, JPEG, PNG</p>
+        </div>
+
+        <button type="submit" id="btnSubmit">Kirim Pengaduan</button>
+        <div id="loading">Sedang mengirim pengaduan, mohon tunggu...</div>
+    </form>
+</div>
+
+<script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBUla5v8J0DQvbYca-tAqM-QfSseyuVhrNq7b7N1fjSHdWhCWAsYyHCDJ4I4aM65lV/exec";
+    
+    // Nomor WhatsApp Admin Sekolah
+    var ADMIN_1 = "6281261277755"; 
+    var ADMIN_2 = "6281226925407";
+
+    document.getElementById('formPengaduan').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var btnSubmit = document.getElementById('btnSubmit');
+        var loadingDiv = document.getElementById('loading');
+        
+        btnSubmit.disabled = true;
+        loadingDiv.style.display = 'block';
+
+        var fileInput = document.getElementById('file_gambar');
+        var file = fileInput.files[0];
+
+        var formData = {
+            nama_pelapor: document.getElementById('nama_pelapor').value,
+            // Tetap menggunakan trik petik satu agar angka 0 tidak hilang
+            noHP_pelapor: "'" + document.getElementById('noHP_pelapor').value,
+            judul_lapor: document.getElementById('judul_lapor').value,
+            isi_lapor: document.getElementById('isi_lapor').value
+        };
+
+        if (file) {
+            var reader = new FileReader();
+            reader.onloadend = function() {
+                formData.file_gambar = reader.result;
+                formData.file_gambar_name = file.name;
+                sendData(formData);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            sendData(formData);
+        }
+    });
+
+    function sendData(data) {
+        var pairs = [];
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+                pairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+            }
+        }
+        var queryParams = pairs.join('&');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                // Jangan buru-buru menyalakan tombol submit, biar loading selesai sampai pengecekan WA tuntas
+                if (xhr.status === 200 || xhr.status === 0) {
+                    
+                    // ==========================================
+                    // TAHAP PEMERIKSAAN FITUR WA (SHEET2 F1)
+                    // ==========================================
+                    var xhrCekWA = new XMLHttpRequest();
+                    xhrCekWA.open("POST", WEB_APP_URL, true);
+                    xhrCekWA.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                    
+                    xhrCekWA.onreadystatechange = function () {
+                        if (xhrCekWA.readyState === 4) {
+                            // Hidupkan kembali tombol setelah seluruh proses selesai
+                            document.getElementById('btnSubmit').disabled = false;
+                            document.getElementById('loading').style.display = 'none';
+                            
+                            var izinWA = xhrCekWA.status === 200 ? xhrCekWA.responseText.trim().toLowerCase() : "tidak";
+
+                            if (izinWA === "ya") {
+                                // JIKA PENGATURAN DI SET "YA"
+                                alert("Pengaduan Anda berhasil disimpan di sistem sekolah!\n\nSelanjutnya, silakan klik OK untuk meneruskan laporan ke WhatsApp Admin.");
+                                kirimNotifikasiWhatsApp(data);
+                            } else {
+                                // JIKA PENGATURAN DI SET "TIDAK"
+                                alert("Pengaduan Anda sukses terkirim dan disimpan di database panitia PPDB SMPN 14 Tarakan. Terima kasih!");
+                            }
+                            
+                            // Reset form formulir setelah sukses
+                            document.getElementById('formPengaduan').reset();
+                        }
+                    };
+                    // Mengirim perintah khusus untuk membaca status F1 ke kode.gs
+                    xhrCekWA.send("action=cekIzinWA");
+                    
+                } else {
+                    document.getElementById('btnSubmit').disabled = false;
+                    document.getElementById('loading').style.display = 'none';
+                    alert("Terjadi kesalahan sistem (Status: " + xhr.status + "). Silakan coba beberapa saat lagi.");
+                }
+            }
+        };
+        
+        xhr.send(queryParams);
+    }
+
+    function kirimNotifikasiWhatsApp(data) {
+        // Membersihkan tanda petik (') agar tidak ikut terkirim di teks pesan WhatsApp pelapor
+        var noHPClean = data.noHP_pelapor;
+        if (noHPClean.indexOf("'") === 0) {
+            noHPClean = noHPClean.substr(1);
+        }
+
+        var teksRaw = "*PENGADUAN BARU PPDB SMPN 14 TARAKAN*\n" +
+                      "----------------------------------\n" +
+                      "*Nama Pelapor:* " + data.nama_pelapor + "\n" +
+                      "*No. HP:* " + noHPClean + "\n" +
+                      "*Judul Masalah:* " + data.judul_lapor + "\n" +
+                      "*Isi Pengaduan:* " + data.isi_lapor + "\n\n" +
+                      "_Mohon segera diperiksa pada Google Sheets Panitia._";
+
+        var teksPesan = encodeURIComponent(teksRaw);
+        var urlWhatsAppAdmin1 = "https://wa.me/" + ADMIN_1 + "?text=" + teksPesan;
+
+        var bukaWA = window.open(urlWhatsAppAdmin1, '_blank');
+        if (!bukaWA || bukaWA.closed || typeof bukaWA.closed == 'undefined') {
+            window.location.href = urlWhatsAppAdmin1;
+        }
+    }
+</script>
+</body>
+</html>

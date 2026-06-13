@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Dashboard Admin - SMPN 14 Tarakan</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        
+        /* Tampilan Form Login */
+        .login-box { max-width: 400px; background: #fff; padding: 30px; margin: 100px auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .login-box h3 { text-align: center; color: #333; margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input[type="text"], input[type="password"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 80px; resize: vertical; }
+        .btn-login { width: 100%; padding: 12px; background-color: #218838; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        #loginMsg { text-align: center; color: red; font-weight: bold; margin-top: 15px; }
+
+        /* Tampilan Dashboard 2 Kolom */
+        .dashboard-container { display: none; height: 100vh; }
+        .sidebar { width: 230px; background-color: #343a40; color: #fff; float: left; height: 100%; box-sizing: border-box; padding-top: 10px; }
+        .sidebar h4 { text-align: center; padding: 10px; margin: 0; border-bottom: 1px solid #4b545c; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar ul li a { display: block; padding: 15px 20px; color: #c2c7d0; text-decoration: none; border-bottom: 1px solid #3f474e; }
+        .sidebar ul li a:hover, .sidebar ul li a.active { background-color: #495057; color: #fff; font-weight: bold; }
+        
+        .main-content { margin-left: 230px; padding: 25px; background-color: #f4f6f9; min-height: 100vh; box-sizing: border-box; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px; }
+        .btn-logout { padding: 8px 15px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        .card { background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 20px; }
+        .konten-panel { display: none; }
+        .konten-panel.active { display: block; }
+
+        /* Kotak Ringkasan Statistik */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; margin-top: 15px; }
+        .stat-card { padding: 20px; border-radius: 6px; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
+        .stat-card h3 { margin: 0; font-size: 32px; font-weight: bold; }
+        .stat-card p { margin: 5px 0 0 0; font-size: 14px; font-weight: bold; opacity: 0.9; }
+        .bg-total { background-color: #007bff; }
+        .bg-hariini { background-color: #17a2b8; }
+        .bg-selesai-card { background-color: #28a745; }
+        .bg-proses-card { background-color: #fd7e14; }
+
+        /* Grafik Batang Horisontal */
+        .chart-section { margin-top: 25px; border-top: 1px solid #dee2e6; padding-top: 20px; }
+        .chart-row { margin-bottom: 15px; }
+        .chart-label { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #444; }
+        .chart-bar-container { background-color: #e9ecef; border-radius: 4px; width: 100%; height: 25px; position: relative; overflow: hidden; }
+        .chart-bar-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s ease-in-out; text-align: right; box-sizing: border-box; padding-right: 10px; color: white; font-weight: bold; font-size: 12px; line-height: 25px; }
+
+        /* Desain Tabel Pengaduan */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        table, th, td { border: 1px solid #dee2e6; }
+        th { background-color: #007bff; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; vertical-align: top; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .btn-aksi { background-color: #ffc107; color: #212529; border: none; padding: 5px 10px; font-weight: bold; border-radius: 3px; cursor: pointer; }
+        .btn-aksi:hover { background-color: #e0a800; }
+        .badge { padding: 3px 7px; border-radius: 10px; font-size: 11px; font-weight: bold; color: white; }
+        .bg-proses { background-color: #fd7e14; }
+        .bg-selesai { background-color: #28a745; }
+
+        /* Navigasi Halaman (Pagination) */
+        .pagination-container { margin-top: 20px; text-align: right; font-size: 14px; }
+        .btn-page { padding: 6px 12px; margin-left: 4px; background-color: #fff; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; }
+        .btn-page:hover { background-color: #e9ecef; }
+        .btn-page.active { background-color: #007bff; color: white; border-color: #007bff; font-weight: bold; }
+        .btn-page:disabled { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }
+
+        /* Jendela Pop-up Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { position: absolute; background-color: #fff; padding: 0; border-radius: 8px; width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); top: 15%; left: 35%; }
+        .modal-header { position: relative; font-size: 18px; font-weight: bold; padding: 15px; background-color: #007bff; color: white; border-top-left-radius: 7px; border-top-right-radius: 7px; cursor: move; user-select: none; }
+        .close-icon { position: absolute; right: 15px; top: 12px; color: white; font-size: 22px; font-weight: bold; cursor: pointer; user-select: none; }
+        .close-icon:hover { color: #ffc107; }
+        .modal-body { padding: 20px; }
+        .modal-footer { margin-top: 15px; text-align: right; border-top: 1px solid #eee; padding-top: 15px; }
+        
+        .btn-simpan { background-color: #007bff; color: white; border: none; padding: 10px 15px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .btn-simpan:hover { background-color: #0056b3; }
+        .btn-wa { background-color: #25d366; color: white; border: none; padding: 10px 15px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+        .btn-wa:hover { background-color: #21b854; }
+
+        /* Form Pengaturan Khusus */
+        .sub-judul-setting { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; color: #007bff; }
+        .btn-setting-save { background-color: #28a745; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .btn-setting-save:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<!-- SECTION 1: FORM LOGIN -->
+<div id="loginSection" class="login-box">
+    <h3>Login Admin PPDB</h3>
+    <form id="formLogin">
+        <div class="form-group">
+            <label>Nama Pengguna :</label>
+            <input type="text" id="username" required placeholder="Masukkan username">
+        </div>
+        <div class="form-group">
+            <label>Password :</label>
+            <input type="password" id="password" required placeholder="Masukkan password">
+        </div>
+        <button type="submit" id="btnLogin" class="btn-login">Masuk</button>
+        <div id="loginMsg"></div>
+    </form>
+</div>
+
+<!-- SECTION 2: DASHBOARD ADMIN -->
+<div id="dashboardSection" class="dashboard-container">
+    <div class="sidebar">
+        <h4>SMPN 14 Tarakan</h4>
+        <ul>
+            <li><a href="#" class="menu-link active" onclick="bukaMenu(event, 'panelBeranda')">Beranda</a></li>
+            <li><a href="#" class="menu-link" onclick="bukaMenu(event, 'panelData')">Data Pengaduan</a></li>
+            <li><a href="#" class="menu-link" onclick="bukaMenu(event, 'panelPengaturan')">Pengaturan</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="header-content">
+            <h2 id="judulHalaman">Beranda Admin</h2>
+            <button class="btn-logout" onclick="logoutAdmin()">Keluar</button>
+        </div>
+        
+        <!-- ================= PANEL BERANDA ================= -->
+        <div id="panelBeranda" class="konten-panel active">
+            <div class="card">
+                <h3>Ringkasan Data Pengaduan PPDB</h3>
+                <div class="stats-grid">
+                    <div class="stat-card bg-total">
+                        <h3 id="statTotal">0</h3>
+                        <p>Total Pengadu</p>
+                    </div>
+                    <div class="stat-card bg-hariini">
+                        <h3 id="statHariIni">0</h3>
+                        <p>Masuk Hari Ini</p>
+                    </div>
+                    <div class="stat-card bg-selesai-card">
+                        <h3 id="statSelesai">0</h3>
+                        <p>Status Selesai</p>
+                    </div>
+                    <div class="stat-card bg-proses-card">
+                        <h3 id="statProses">0</h3>
+                        <p>Dalam Proses</p>
+                    </div>
+                </div>
+                <div class="chart-section">
+                    <h4>Grafik Perbandingan Status</h4>
+                    <div class="chart-row">
+                        <div class="chart-label">Selesai</div>
+                        <div class="chart-bar-container">
+                            <div id="barSelesai" class="chart-bar-fill" style="background-color: #28a745;">0</div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Dalam Proses</div>
+                        <div class="chart-bar-container">
+                            <div id="barProses" class="chart-bar-fill" style="background-color: #fd7e14;">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ================= PANEL DATA PENGADUAN ================= -->
+        <div id="panelData" class="konten-panel">
+            <div class="card">
+                <h3>Daftar Pengaduan Masuk</h3>
+                <div id="statusMuatData">Sedang memuat tabel dari Google Sheets...</div>
+                <div id="wrapperTabel" style="display:none;">
+                    <table id="tabelPengaduan">
+                        <thead>
+                            <tr>
+                                <th>No</th><th>Tanggal Lapor</th><th>Nama Pelapor</th><th>No. HP</th><th>Judul Lapor</th><th>Isi Lapor</th><th>File Gambar</th><th>Tindak Lanjut</th><th>Status</th><th>Keterangan</th><th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyTabel"></tbody>
+                    </table>
+                    <div class="pagination-container" id="paginationNav"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PANEL PENGATURAN SYSTEM ================= -->
+        <div id="panelPengaturan" class="konten-panel">
+                
+                <h3>Pengaturan Sistem & Keamanan</h3>
+                <p style="color:#666; font-size:13px;">Kelola preferensi operasional aplikasi formulir pengaduan sekolah.</p>
+                
+                <h4 class="sub-judul-setting">1. Alur Hubungan Komunikasi (WhatsApp)</h4>
+                <form id="formSettingWA">
+                    <div class="form-group">
+                        <label>Apakah Pelapor diizinkan mengirim pesan WA ke nomor Admin?</label>
+                        <select id="setIzinWA" style="width: 150px;">
+                            <option value="ya">Ya (Izinkan)</option>
+                            <option value="tidak">Tidak (Kunci)</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="btnSaveWA" class="btn-setting-save">Simpan Preferensi</button>
+                </form>
+
+                <h4 class="sub-judul-setting">2. Ubah Akun Login Admin</h4>
+                <form id="formSettingAkun">
+                    <div class="form-group">
+                        <label>Username Baru :</label>
+                        <input type="text" id="setUserBaru" required placeholder="Ketik username baru">
+                    </div>
+                    <div class="form-group">
+                        <label>Password Baru :</label>
+                        <input type="password" id="setPassBaru" required placeholder="Ketik password baru">
+                    </div>
+                    <button type="submit" id="btnSaveAkun" class="btn-setting-save" style="background-color: #007bff;">Perbarui Akun</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- POP-UP MODAL FORM RESPONS -->
+<div id="modalAksi" class="modal">
+    <div id="modalKontenKotak" class="modal-content">
+        <div id="modalHeaderHandle" class="modal-header">
+            Form Respon Tindak Lanjut ??
+            <span class="close-icon" onclick="tutupModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="formRespon">
+                <input type="hidden" id="modalRowNum">
+                <div class="form-group">
+                    <label>Nama Pelapor :</label>
+                    <input type="text" id="modalNama" disabled style="background-color:#e9ecef;">
+                </div>
+                <div class="form-group">
+                    <label>No. HP Pelapor :</label>
+                    <input type="text" id="modalHP" disabled style="background-color:#e9ecef;">
+                </div>
+                <div class="form-group">
+                    <label>Tindak Lanjut :</label>
+                    <textarea id="modalTindakLanjut" required placeholder="Tuliskan tindakan/solusi sekolah..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Status :</label>
+                    <select id="modalStatus">
+                        <option value="dalamProses">dalam Proses</option>
+                        <option value="selesai">selesai</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Keterangan :</label>
+                    <textarea id="modalKeterangan" placeholder="Catatan tambahan opsional..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="btnSimpanAksi" class="btn-simpan">Simpan Perubahan</button>
+                    <button type="button" id="btnKirimWA" class="btn-wa" onclick="kirimPesanKePelapor()">Kirim Pesan ke Pelapor ??</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // MASUKKAN URL GOOGLE WEB APP ANDA DI BAWAH INI
+    var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBUla5v8J0DQvbYca-tAqM-QfSseyuVhrNq7b7N1fjSHdWhCWAsYyHCDJ4I4aM65lV/exec";
+    var dataPengaduanLokal = []; 
+    var currentPage = 1;
+    var rowsPerPage = 6;
+
+    // Handle Login Admin
+    document.getElementById('formLogin').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btnLogin = document.getElementById('btnLogin');
+        var loginMsg = document.getElementById('loginMsg');
+        btnLogin.disabled = true;
+        loginMsg.innerHTML = "Memverifikasi...";
+
+        var userVal = document.getElementById('username').value;
+        var passVal = document.getElementById('password').value;
+        var queryParams = "action=loginAdmin&username=" + encodeURIComponent(userVal) + "&password=" + encodeURIComponent(passVal);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                btnLogin.disabled = false;
+                if (xhr.status === 200) {
+                    if (xhr.responseText.trim() === "success_login") {
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('dashboardSection').style.display = 'block';
+                        tarikDataUtama();
+                    } else {
+                        loginMsg.innerHTML = "User / Password Salah!";
+                    }
+                } else {
+                    loginMsg.innerHTML = "Gagal terhubung ke server (Status: " + xhr.status + ")";
+                }
+            }
+        };
+        xhr.send(queryParams);
+    });
+
+    // Navigasi Menu Sidebar
+    function bukaMenu(e, idPanel) {
+        e.preventDefault();
+        var panels = document.getElementsByClassName('konten-panel');
+        for (var i = 0; i < panels.length; i++) panels[i].className = "konten-panel";
+        
+        var menuLinks = document.getElementsByClassName('menu-link');
+        for (var j = 0; j < menuLinks.length; j++) menuLinks[j].className = "menu-link";
+        
+        document.getElementById(idPanel).className = "konten-panel active";
+        e.currentTarget.className = "menu-link active";
+        
+        if (idPanel === 'panelBeranda') {
+            document.getElementById('judulHalaman').innerHTML = "Beranda Admin";
+            hitungDanTampilkanStatistik(); 
+        } else if (idPanel === 'panelData') {
+            document.getElementById('judulHalaman').innerHTML = "Data Pengaduan Admin";
+            muatDataTabel();
+        } else if (idPanel === 'panelPengaturan') {
+            document.getElementById('judulHalaman').innerHTML = "Pengaturan Aplikasi";
+            ambilPengaturanServer();
+        }
+    }
+
+    // Ambil Data Awal untuk Beranda
+    function tarikDataUtama() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    var dataMentah = JSON.parse(xhr.responseText);
+                    dataPengaduanLokal = dataMentah.reverse();
+                    hitungDanTampilkanStatistik();
+                } catch(e) {
+                    console.log("Parsing error di beranda.");
+                }
+            }
+        };
+        xhr.send("action=ambilData");
+    }
+
+    // Muat Data Tabel dari Google Sheets
+    function muatDataTabel() {
+        document.getElementById('statusMuatData').style.display = 'block';
+        document.getElementById('statusMuatData').innerHTML = "Sedang memuat tabel dari Google Sheets...";
+        document.getElementById('wrapperTabel').style.display = 'none';
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    var dataMentah = JSON.parse(xhr.responseText);
+                    dataPengaduanLokal = dataMentah.reverse();
+                    tampilkanDataPerHalaman();
+                    document.getElementById('statusMuatData').style.display = 'none';
+                    document.getElementById('wrapperTabel').style.display = 'block';
+                } catch(e) {
+                    document.getElementById('statusMuatData').innerHTML = "Format data bermasalah.";
+                }
+            }
+        };
+        xhr.send("action=ambilData");
+    }
+
+    // Ambil Data Preferensi (Sheet2 F1)
+    function ambilPengaturanServer() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var responStatus = xhr.responseText.trim();
+                document.getElementById('setIzinWA').value = responStatus;
+            }
+        };
+        xhr.send("action=ambilPengaturan");
+    }
+
+    // Simpan Preferensi WA
+    document.getElementById('formSettingWA').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btnSaveWA');
+        var valOpsi = document.getElementById('setIzinWA').value;
+        btn.disabled = true; btn.innerHTML = "Menyimpan...";
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                btn.disabled = false; btn.innerHTML = "Simpan Preferensi";
+                if (xhr.status === 200 && xhr.responseText.trim() === "success_config") {
+                    alert("Pengaturan izin WhatsApp berhasil diperbarui!");
+                } else {
+                    alert("Gagal menyimpan pengaturan.");
+                }
+            }
+        };
+        xhr.send("action=simpanPengaturan&izin_wa=" + valOpsi);
+    });
+
+    // Simpan Perubahan Akun Admin
+    document.getElementById('formSettingAkun').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btnSaveAkun');
+        var userBaru = document.getElementById('setUserBaru').value;
+        var passBaru = document.getElementById('setPassBaru').value;
+        btn.disabled = true; btn.innerHTML = "Memproses...";
+
+        var query = "action=updateAkunAdmin&username_baru=" + encodeURIComponent(userBaru) + "&password_baru=" + encodeURIComponent(passBaru);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                btn.disabled = false; btn.innerHTML = "Perbarui Akun";
+                if (xhr.status === 200 && xhr.responseText.trim() === "success_akun") {
+                    alert("Username dan Password admin berhasil diubah!");
+                    document.getElementById('formSettingAkun').reset();
+                } else {
+                    alert("Gagal memperbarui data akun.");
+                }
+            }
+        };
+        xhr.send(query);
+    });
+
+    // Menghitung Statistik & Grafik
+    function hitungDanTampilkanStatistik() {
+        var totalPengadu = dataPengaduanLokal.length;
+        var totalHariIni = 0; var totalSelesai = 0; var totalProses = 0;
+        var hariIni = new Date();
+        var tglHariIniStr = hariIni.getFullYear() + "-" + ("0" + (hariIni.getMonth() + 1)).slice(-2) + "-" + ("0" + hariIni.getDate()).slice(-2);
+
+        for (var i = 0; i < dataPengaduanLokal.length; i++) {
+            var item = dataPengaduanLokal[i];
+            if (item.status === "selesai") totalSelesai++; else totalProses++;
+            if (item.tanggal_lapor) {
+                var tglLaporObj = new Date(item.tanggal_lapor);
+                var tglLaporStr = tglLaporObj.getFullYear() + "-" + ("0" + (tglLaporObj.getMonth() + 1)).slice(-2) + "-" + ("0" + tglLaporObj.getDate()).slice(-2);
+                if (tglLaporStr === tglHariIniStr) totalHariIni++;
+            }
+        }
+        document.getElementById("statTotal").innerHTML = totalPengadu;
+        document.getElementById("statHariIni").innerHTML = totalHariIni;
+        document.getElementById("statSelesai").innerHTML = totalSelesai;
+        document.getElementById("statProses").innerHTML = totalProses;
+
+        var persenSelesai = totalPengadu > 0 ? Math.round((totalSelesai / totalPengadu) * 100) : 0;
+        var persenProses = totalPengadu > 0 ? Math.round((totalProses / totalPengadu) * 100) : 0;
+
+        var barSelesai = document.getElementById("barSelesai");
+        barSelesai.style.width = persenSelesai + "%"; barSelesai.innerHTML = totalSelesai + " Laporan (" + persenSelesai + "%)";
+        var barProses = document.getElementById("barProses");
+        barProses.style.width = persenProses + "%"; barProses.innerHTML = totalProses + " Laporan (" + persenProses + "%)";
+    }
+
+    // Render Tabel
+    function tampilkanDataPerHalaman() {
+        var bodyTabel = document.getElementById('bodyTabel');
+        bodyTabel.innerHTML = "";
+        var start = (currentPage - 1) * rowsPerPage;
+        var end = start + rowsPerPage;
+        var paginatedItems = dataPengaduanLokal.slice(start, end);
+
+        if(paginatedItems.length === 0) {
+            bodyTabel.innerHTML = "<tr><td colspan='11' style='text-align:center;'>Belum ada data pengaduan masuk.</td></tr>";
+            document.getElementById('paginationNav').innerHTML = ""; return;
+        }
+
+        var htmlRows = "";
+        for (var i = 0; i < paginatedItems.length; i++) {
+            var d = paginatedItems[i];
+            var actualIndex = start + i;
+            var tgl = d.tanggal_lapor ? new Date(d.tanggal_lapor).toLocaleString('id-ID') : '-';
+            var linkGambar = d.file_gambar ? "<a href='"+d.file_gambar+"' target='_blank'>Lihat Foto</a>" : "-";
+            var badgeClass = d.status === 'selesai' ? 'badge bg-selesai' : 'badge bg-proses';
+            
+            htmlRows += "<tr>" +
+                "<td>" + d.no_urut + "</td>" +
+                "<td>" + tgl + "</td>" +
+                "<td>" + d.nama_pelapor + "</td>" +
+                "<td>" + d.noHP_pelapor + "</td>" +
+                "<td>" + d.judul_lapor + "</td>" +
+                "<td>" + d.isi_lapor + "</td>" +
+                "<td>" + linkGambar + "</td>" +
+                "<td>" + (d.tindak_lanjut || "-") + "</td>" +
+                "<td><span class='" + badgeClass + "'>" + (d.status || "dalamProses") + "</span></td>" +
+                "<td>" + (d.keterangan || "-") + "</td>" +
+                "<td><button class='btn-aksi' onclick='bukaModalForm(" + actualIndex + ")'>Respon</button></td>" +
+                "</tr>";
+        }
+        bodyTabel.innerHTML = htmlRows;
+        setupTombolPagination();
+    }
+
+    function setupTombolPagination() {
+        var navContainer = document.getElementById('paginationNav');
+        navContainer.innerHTML = ""; var totalPages = Math.ceil(dataPengaduanLokal.length / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        var btnPrev = document.createElement('button');
+        btnPrev.className = "btn-page"; btnPrev.innerHTML = "« Sebelomnya"; btnPrev.disabled = currentPage === 1;
+        btnPrev.onclick = function() { currentPage--; tampilkanDataPerHalaman(); };
+        navContainer.appendChild(btnPrev);
+
+        for (var i = 1; i <= totalPages; i++) {
+            var btnNum = document.createElement('button');
+            btnNum.className = (i === currentPage) ? "btn-page active" : "btn-page"; btnNum.innerHTML = i;
+            (function(pageIndex) { btnNum.onclick = function() { currentPage = pageIndex; tampilkanDataPerHalaman(); }; })(i);
+            navContainer.appendChild(btnNum);
+        }
+
+        var btnNext = document.createElement('button');
+        btnNext.className = "btn-page"; btnNext.innerHTML = "Selanjutnya »"; btnNext.disabled = currentPage === totalPages;
+        btnNext.onclick = function() { currentPage++; tampilkanDataPerHalaman(); };
+        navContainer.appendChild(btnNext);
+    }
+
+    function bukaModalForm(index) {
+        var dataDipilih = dataPengaduanLokal[index];
+        document.getElementById('modalRowNum').value = dataDipilih.rowNum;
+        document.getElementById('modalNama').value = dataDipilih.nama_pelapor;
+        document.getElementById('modalHP').value = dataDipilih.noHP_pelapor;
+        document.getElementById('modalTindakLanjut').value = dataDipilih.tindak_lanjut || "";
+        document.getElementById('modalStatus').value = dataDipilih.status === "selesai" ? "selesai" : "dalamProses";
+        document.getElementById('modalKeterangan').value = dataDipilih.keterangan || "";
+        var boxModal = document.getElementById('modalKontenKotak');
+        boxModal.style.top = "15%"; boxModal.style.left = "35%";
+        document.getElementById('modalAksi').style.display = 'block';
+    }
+
+    function tutupModal() { document.getElementById('modalAksi').style.display = 'none'; }
+
+    // Simpan Form Tindak Lanjut
+    document.getElementById('formRespon').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btnSimpan = document.getElementById('btnSimpanAksi');
+        btnSimpan.disabled = true; btnSimpan.innerHTML = "Menyimpan...";
+        var rowNum = document.getElementById('modalRowNum').value;
+        var tl = document.getElementById('modalTindakLanjut').value;
+        var st = document.getElementById('modalStatus').value;
+        var ket = document.getElementById('modalKeterangan').value;
+        var queryUpdate = "action=updateTindakLanjut&rowNum=" + rowNum + "&tindak_lanjut=" + encodeURIComponent(tl) + "&status=" + encodeURIComponent(st) + "&keterangan=" + encodeURIComponent(ket);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", WEB_APP_URL, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                btnSimpan.disabled = false; btnSimpan.innerHTML = "Simpan Perubahan";
+                if (xhr.status === 200 && xhr.responseText.trim() === "success_update") {
+                    alert("Tindak lanjut berhasil disimpan!");
+                    var xhrReload = new XMLHttpRequest();
+                    xhrReload.open("POST", WEB_APP_URL, true);
+                    xhrReload.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                    xhrReload.onreadystatechange = function () {
+                        if (xhrReload.readyState === 4 && xhrReload.status === 200) {
+                            var dataMentah = JSON.parse(xhrReload.responseText);
+                            dataPengaduanLokal = dataMentah.reverse();
+                            tampilkanDataPerHalaman();
+                        }
+                    };
+                    xhrReload.send("action=ambilData");
+                } else { alert("Gagal memperbarui data."); }
+            }
+        };
+        xhr.send(queryUpdate);
+    });
+
+    function kirimPesanKePelapor() {
+        var nama = document.getElementById('modalNama').value;
+        var noHP = document.getElementById('modalHP').value.trim();
+        var tindakLanjut = document.getElementById('modalTindakLanjut').value;
+        var status = document.getElementById('modalStatus').value;
+        if(!tindakLanjut) { alert("Harap isi kolom Tindak Lanjut terlebih dahulu!"); return; }
+        if (noHP.indexOf("0") === 0) { noHP = "62" + noHP.substr(1); }
+        var statusTeks = status === "selesai" ? "SELESAI" : "DALAM PROSES";
+        var teksRaw = "*RESPON PENGADUAN PPDB SMPN 14 TARAKAN*\n--------------------------------------\nHalo Bapak/Ibu *" + nama + "*,\n\nLaporan pengaduan Anda telah ditindaklanjuti oleh panitia sekolah.\n\n*Tindak Lanjut:* " + tindakLanjut + "\n*Status Terbaru:* " + statusTeks + "\n\nTerima kasih atas laporan Anda.";
+        var teksPesan = encodeURIComponent(teksRaw); var urlWA = "https://wa.me/" + noHP + "?text=" + teksPesan;
+        var bukaWA = window.open(urlWA, '_blank');
+        if (!bukaWA || bukaWA.closed || typeof bukaWA.closed == 'undefined') { window.location.href = urlWA; }
+    }
+
+    function logoutAdmin() {
+        if(confirm("Keluar dari dashboard?")) {
+            document.getElementById('formLogin').reset(); document.getElementById('loginMsg').innerHTML = "";
+            document.getElementById('dashboardSection').style.display = 'none'; document.getElementById('loginSection').style.display = 'block';
+        }
+    }
+
+    // DRAG & DROP MODAL LOGIC
+    var kotakModal = document.getElementById("modalKontenKotak");
+    var handleHeader = document.getElementById("modalHeaderHandle");
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (handleHeader) { handleHeader.onmousedown = dragMouseDown; }
+    function dragMouseDown(e) { e = e || window.event; pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
+    function elementDrag(e) { e = e || window.event; pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; kotakModal.style.top = (kotakModal.offsetTop - pos2) + "px"; kotakModal.style.left = (kotakModal.offsetLeft - pos1) + "px"; }
+    function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
+</script>
+</body>
+</html>
