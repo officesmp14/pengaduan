@@ -93,7 +93,7 @@
 
 <!-- SECTION 1: FORM LOGIN -->
 <div id="loginSection" class="login-box">
-    <h3>Login Admin PPDB</h3>
+    <h3>Login Admin SPMB</h3>
     <form id="formLogin">
         <div class="form-group">
             <label>Nama Pengguna :</label>
@@ -128,7 +128,7 @@
         <!-- ================= PANEL BERANDA ================= -->
         <div id="panelBeranda" class="konten-panel active">
             <div class="card">
-                <h3>Ringkasan Data Pengaduan PPDB</h3>
+                <h3>Ringkasan Data Pengaduan SPMB</h3>
                 <div class="stats-grid">
                     <div class="stat-card bg-total">
                         <h3 id="statTotal">0</h3>
@@ -169,7 +169,7 @@
         <div id="panelData" class="konten-panel">
             <div class="card">
                 <h3>Daftar Pengaduan Masuk</h3>
-                <div id="statusMuatData">Sedang memuat tabel dari Google Sheets...</div>
+                <div id="statusMuatData">Sedang memuat database oracle....</div>
                 <div id="wrapperTabel" style="display:none;">
                     <table id="tabelPengaduan">
                         <thead>
@@ -510,7 +510,7 @@
         if (totalPages <= 1) return;
 
         var btnPrev = document.createElement('button');
-        btnPrev.className = "btn-page"; btnPrev.innerHTML = "« Sebelomnya"; btnPrev.disabled = currentPage === 1;
+        btnPrev.className = "btn-page"; btnPrev.innerHTML = "Â« Sebelomnya"; btnPrev.disabled = currentPage === 1;
         btnPrev.onclick = function() { currentPage--; tampilkanDataPerHalaman(); };
         navContainer.appendChild(btnPrev);
 
@@ -522,7 +522,7 @@
         }
 
         var btnNext = document.createElement('button');
-        btnNext.className = "btn-page"; btnNext.innerHTML = "Selanjutnya »"; btnNext.disabled = currentPage === totalPages;
+        btnNext.className = "btn-page"; btnNext.innerHTML = "Selanjutnya Â»"; btnNext.disabled = currentPage === totalPages;
         btnNext.onclick = function() { currentPage++; tampilkanDataPerHalaman(); };
         navContainer.appendChild(btnNext);
     }
